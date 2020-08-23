@@ -35,7 +35,7 @@
 #include "kiss_fft.h"
 #include "common.h"
 #include <math.h>
-#include "rnnoise.h"
+#include "../include/rnnoise.h"
 #include "pitch.h"
 #include "arch.h"
 #include "rnn.h"
@@ -59,7 +59,7 @@
 #define NB_DELTA_CEPS 6
 
 #define NB_FEATURES (NB_BANDS+3*NB_DELTA_CEPS+2)
-
+#define M_PI		3.1415926535898f
 
 #ifndef TRAINING
 #define TRAINING 0
@@ -170,12 +170,12 @@ static void check_init() {
   if (common.init) return;
   common.kfft = opus_fft_alloc_twiddles(2*FRAME_SIZE, NULL, NULL, NULL, 0);
   for (i=0;i<FRAME_SIZE;i++)
-    common.half_window[i] = sin(.5*M_PI*sin(.5*M_PI*(i+.5)/FRAME_SIZE) * sin(.5*M_PI*(i+.5)/FRAME_SIZE));
+    common.half_window[i] = sin(.5f*M_PI*sin(.5f*M_PI*(i+.5f)/FRAME_SIZE) * sin(.5f*M_PI*(i+.5f)/FRAME_SIZE));
   for (i=0;i<NB_BANDS;i++) {
     int j;
     for (j=0;j<NB_BANDS;j++) {
-      common.dct_table[i*NB_BANDS + j] = cos((i+.5)*j*M_PI/NB_BANDS);
-      if (j==0) common.dct_table[i*NB_BANDS + j] *= sqrt(.5);
+      common.dct_table[i*NB_BANDS + j] = cos((i+.5f)*j*M_PI/NB_BANDS);
+      if (j==0) common.dct_table[i*NB_BANDS + j] *= sqrt(.5f);
     }
   }
   common.init = 1;
@@ -190,7 +190,7 @@ static void dct(float *out, const float *in) {
     for (j=0;j<NB_BANDS;j++) {
       sum += in[j] * common.dct_table[j*NB_BANDS + i];
     }
-    out[i] = sum*sqrt(2./22);
+    out[i] = sum*sqrtf(20./22);
   }
 }
 
@@ -336,12 +336,12 @@ static int compute_frame_features(DenoiseState *st, kiss_fft_cpx *X, kiss_fft_cp
   forward_transform(P, p);
   compute_band_energy(Ep, P);
   compute_band_corr(Exp, X, P);
-  for (i=0;i<NB_BANDS;i++) Exp[i] = Exp[i]/sqrt(.001+Ex[i]*Ep[i]);
+  for (i=0;i<NB_BANDS;i++) Exp[i] = Exp[i]/sqrtf(.001+Ex[i]*Ep[i]);
   dct(tmp, Exp);
   for (i=0;i<NB_DELTA_CEPS;i++) features[NB_BANDS+2*NB_DELTA_CEPS+i] = tmp[i];
-  features[NB_BANDS+2*NB_DELTA_CEPS] -= 1.3;
-  features[NB_BANDS+2*NB_DELTA_CEPS+1] -= 0.9;
-  features[NB_BANDS+3*NB_DELTA_CEPS] = .01*(pitch_index-300);
+  features[NB_BANDS+2*NB_DELTA_CEPS] -= 1.3f;
+  features[NB_BANDS+2*NB_DELTA_CEPS+1] -= 0.9f;
+  features[NB_BANDS+3*NB_DELTA_CEPS] = .01f*(pitch_index-300);
   logMax = -2;
   follow = -2;
   for (i=0;i<NB_BANDS;i++) {
@@ -427,10 +427,10 @@ void pitch_filter(kiss_fft_cpx *X, const kiss_fft_cpx *P, const float *Ex, const
     r[i] = MIN16(1, MAX16(0, r[i]));
 #else
     if (Exp[i]>g[i]) r[i] = 1;
-    else r[i] = SQUARE(Exp[i])*(1-SQUARE(g[i]))/(.001 + SQUARE(g[i])*(1-SQUARE(Exp[i])));
-    r[i] = sqrt(MIN16(1, MAX16(0, r[i])));
+    else r[i] = SQUARE(Exp[i])*(1-SQUARE(g[i]))/(.001f + SQUARE(g[i])*(1-SQUARE(Exp[i])));
+    r[i] = sqrtf(MIN16(1, MAX16(0, r[i])));
 #endif
-    r[i] *= sqrt(Ex[i]/(1e-8+Ep[i]));
+    r[i] *= sqrtf(Ex[i]/(1e-8f+Ep[i]));
   }
   interp_band_gain(rf, r);
   for (i=0;i<FREQ_SIZE;i++) {
@@ -442,7 +442,7 @@ void pitch_filter(kiss_fft_cpx *X, const kiss_fft_cpx *P, const float *Ex, const
   float norm[NB_BANDS];
   float normf[FREQ_SIZE]={0};
   for (i=0;i<NB_BANDS;i++) {
-    norm[i] = sqrt(Ex[i]/(1e-8+newE[i]));
+    norm[i] = sqrtf(Ex[i]/(1e-8f+newE[i]));
   }
   interp_band_gain(normf, norm);
   for (i=0;i<FREQ_SIZE;i++) {
@@ -463,8 +463,8 @@ float rnnoise_process_frame(DenoiseState *st, float *out, const float *in) {
   float gf[FREQ_SIZE]={1};
   float vad_prob = 0;
   int silence;
-  static const float a_hp[2] = {-1.99599, 0.99600};
-  static const float b_hp[2] = {-2, 1};
+  static const float a_hp[2] = {-1.99599f, 0.99600f};
+  static const float b_hp[2] = {-2.0f, 1.0f};
   biquad(x, st->mem_hp_x, in, b_hp, a_hp, FRAME_SIZE);
   silence = compute_frame_features(st, X, P, Ex, Ep, Exp, features, x);
 

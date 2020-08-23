@@ -26,21 +26,29 @@
 */
 
 #include <stdio.h>
-#include "rnnoise.h"
+#include "../include/rnnoise.h"
 
 #define FRAME_SIZE 480
 
 int main(int argc, char **argv) {
   int i;
   int first = 1;
-  float x[FRAME_SIZE];
+  float x[FRAME_SIZE],vad;
   FILE *f1, *fout;
   DenoiseState *st;
   st = rnnoise_create(NULL);
-  if (argc!=3) {
-    fprintf(stderr, "usage: %s <noisy speech> <output denoised>\n", argv[0]);
-    return 1;
+  //if (argc != 3) {
+	 // fprintf(stderr, "usage: %s <noisy speech> <output denoised>\n", argv[0]);
+	 // return 1;
+  //}
+  char *argk[] = { " ","D:\\300-data\\tmp\\test_48k.pcm",
+					"D:\\300-data\\tmp\\out\\test_48k_rnnnoise_out2.pcm"};
+  if (3 > argc)
+  {
+	  argv = argk;
+	  argc = sizeof(argk) / sizeof(argk[0]);
   }
+
   f1 = fopen(argv[1], "r");
   fout = fopen(argv[2], "w");
   while (1) {
@@ -48,7 +56,7 @@ int main(int argc, char **argv) {
     fread(tmp, sizeof(short), FRAME_SIZE, f1);
     if (feof(f1)) break;
     for (i=0;i<FRAME_SIZE;i++) x[i] = tmp[i];
-    rnnoise_process_frame(st, x, x);
+	vad = rnnoise_process_frame(st, x, x);
     for (i=0;i<FRAME_SIZE;i++) tmp[i] = x[i];
     if (!first) fwrite(tmp, sizeof(short), FRAME_SIZE, fout);
     first = 0;
