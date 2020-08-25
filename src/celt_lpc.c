@@ -121,7 +121,7 @@ void celt_fir(
          sum = MAC16_16(sum,rnum[j],x[i+j-ord]);
       y[i] = ROUND16(sum, SIG_SHIFT);
    }
-   free(rnum);
+   if(rnum) free(rnum);
 }
 
 void celt_iir(const opus_val32 *_x,
@@ -198,8 +198,14 @@ void celt_iir(const opus_val32 *_x,
    for(i=0;i<ord;i++)
       mem[i] = _y[N-i-1];
 
-   free(rden);
-   free(y);
+   if (rden) 
+   { 
+	   free(rden);
+   }
+   if (y)
+   {
+	   free(y);
+   }
 #endif
 }
 
@@ -283,7 +289,10 @@ int _celt_autocorr(
       shift += shift2;
    }
 #endif
-   free(xx);
+   if (xx)
+   {
+	   free(xx);
+   }
 
    return shift;
 }

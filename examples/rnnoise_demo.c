@@ -30,7 +30,8 @@
 
 #define FRAME_SIZE 480
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) 
+{
   int i;
   int first = 1;
   float x[FRAME_SIZE],vad;
@@ -42,24 +43,37 @@ int main(int argc, char **argv) {
 	 // return 1;
   //}
   char *argk[] = { " ","D:\\300-data\\tmp\\test_48k.pcm",
-					"D:\\300-data\\tmp\\out\\test_48k_rnnnoise_out2.pcm"};
+					"D:\\300-data\\tmp\\out\\test_48k_rnnnoise_out.pcm"};
   if (3 > argc)
   {
 	  argv = argk;
 	  argc = sizeof(argk) / sizeof(argk[0]);
   }
 
-  f1 = fopen(argv[1], "r");
-  fout = fopen(argv[2], "w");
-  while (1) {
-    short tmp[FRAME_SIZE];
-    fread(tmp, sizeof(short), FRAME_SIZE, f1);
-    if (feof(f1)) break;
-    for (i=0;i<FRAME_SIZE;i++) x[i] = tmp[i];
-	vad = rnnoise_process_frame(st, x, x);
-    for (i=0;i<FRAME_SIZE;i++) tmp[i] = x[i];
-    if (!first) fwrite(tmp, sizeof(short), FRAME_SIZE, fout);
-    first = 0;
+  f1 = fopen(argv[1], "rb");
+  fout = fopen(argv[2], "wb");
+  int n_sample = 0;
+  while (1) 
+  {
+	  short tmp[FRAME_SIZE];
+	  n_sample = fread(tmp, sizeof(short), FRAME_SIZE, f1);
+	  if (n_sample >= FRAME_SIZE)
+	  {
+		  for (i = 0; i < FRAME_SIZE; i++)
+		  {
+			  x[i] = tmp[i];
+		  }
+		  vad = rnnoise_process_frame(st, x, x);
+		  for (i = 0; i < FRAME_SIZE; i++)
+		  {
+			  tmp[i] = x[i];
+		  }
+		  fwrite(tmp, sizeof(short), FRAME_SIZE, fout);
+	  }
+	  else
+	  {
+		  break;
+	  }
   }
   rnnoise_destroy(st);
   fclose(f1);

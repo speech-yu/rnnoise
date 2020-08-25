@@ -297,9 +297,9 @@ void pitch_search(const opus_val16 *x_lp, opus_val16 *y,
    celt_assert(max_pitch>0);
    lag = len+max_pitch;
 
-   opus_val16 *x_lp4 = calloc(sizeof(opus_val16), len >> 2);
-   opus_val16 *y_lp4 = calloc(sizeof(opus_val16), len >> 2);
-   opus_val32 *xcorr = calloc(sizeof(opus_val32), max_pitch >> 2);
+   float *x_lp4 = (float*)calloc(sizeof(float), (len >> 2));
+   float *y_lp4 = (float*)calloc(sizeof(float), (lag >> 2));
+   float *xcorr = (float*)calloc(sizeof(float), (max_pitch >> 1));
    //opus_val16 x_lp4[len>>2];
    //opus_val16 y_lp4[lag>>2];
    //opus_val32 xcorr[max_pitch>>1];
@@ -385,6 +385,19 @@ void pitch_search(const opus_val16 *x_lp, opus_val16 *y,
       offset = 0;
    }
    *pitch = 2*best_pitch[0]-offset;
+
+   if (x_lp4)
+   {
+	   free(x_lp4);
+   }
+   if (y_lp4)
+   {
+	   free(y_lp4);
+   }
+   if (xcorr)
+   {
+	   free(xcorr);
+   }
 }
 
 #ifdef FIXED_POINT
@@ -451,7 +464,7 @@ opus_val16 remove_doubling(opus_val16 *x, int maxperiod, int minperiod,
   // opus_val32 *yy_lookup = calloc(sizeof(opus_val32), maxperiod + 1);
 
    //opus_val32 yy_lookup[385];
-   float *yy_lookup = calloc(sizeof(float), maxperiod + 1);
+   opus_val32 *yy_lookup = calloc(sizeof(opus_val32), maxperiod + 1);
    dual_inner_prod(x, x, x-T0, N, &xx, &xy);
    yy_lookup[0] = xx;
    yy=xx;
@@ -530,5 +543,10 @@ opus_val16 remove_doubling(opus_val16 *x, int maxperiod, int minperiod,
 
    if (*T0_<minperiod0)
       *T0_=minperiod0;
+
+   if (yy_lookup)
+   {
+	   free(yy_lookup);
+   }
    return pg;
 }
