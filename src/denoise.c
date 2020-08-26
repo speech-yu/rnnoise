@@ -59,7 +59,7 @@
 #define NB_DELTA_CEPS 6
 
 #define NB_FEATURES (NB_BANDS+3*NB_DELTA_CEPS+2)
-#define M_PI		3.1415926535898f
+#define M_PI		3.14159265358979323846
 
 #ifndef TRAINING
 #define TRAINING 0
@@ -190,7 +190,7 @@ static void dct(float *out, const float *in) {
     for (j=0;j<NB_BANDS;j++) {
       sum += in[j] * common.dct_table[j*NB_BANDS + i];
     }
-    out[i] = sum*sqrtf(20./22);
+    out[i] = sum*sqrtf(2./22);
   }
 }
 

@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	 // return 1;
   //}
   char *argk[] = { " ","D:\\300-data\\tmp\\test_48k.pcm",
-					"D:\\300-data\\tmp\\out\\test_48k_rnnnoise_out.pcm"};
+					"D:\\300-data\\tmp\\out\\test_48k_rnnnoise_out_new.pcm"};
   if (3 > argc)
   {
 	  argv = argk;
